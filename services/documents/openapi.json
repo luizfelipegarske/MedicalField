@@ -1,0 +1,304 @@
+
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MedicalField Documents API",
+    "version": "1.0.0",
+    "description": "API responsável pela geração de fichas de atendimento em PDF e envio de prontuários por e-mail."
+  },
+  "servers": [
+    {
+      "url": "/api/docs",
+      "description": "Acesso externo pelo Nginx"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Sistema",
+      "description": "Disponibilidade do serviço"
+    },
+    {
+      "name": "Documentos",
+      "description": "Geração de documentos PDF"
+    },
+    {
+      "name": "E-mail",
+      "description": "Envio de prontuários por e-mail"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Pessoa": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string",
+            "example": "Paciente de demonstração"
+          },
+          "documento": {
+            "type": "string",
+            "example": "00000000000"
+          }
+        }
+      },
+      "Medicamento": {
+        "type": "object",
+        "properties": {
+          "medicamento": {
+            "type": "string",
+            "example": "Medicamento de demonstração"
+          },
+          "dose": {
+            "type": "string",
+            "example": "500 mg"
+          },
+          "via": {
+            "type": "string",
+            "example": "Oral"
+          },
+          "frequencia": {
+            "type": "string",
+            "example": "A cada 8 horas"
+          },
+          "observacoes": {
+            "type": "string",
+            "example": "Conforme orientação"
+          }
+        }
+      },
+      "Atendimento": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "queixa": {
+            "type": "string"
+          },
+          "pressao": {
+            "type": "string",
+            "example": "120/80"
+          },
+          "frequenciaCardiaca": {
+            "type": "string",
+            "example": "80 bpm"
+          },
+          "frequenciaRespiratoria": {
+            "type": "string"
+          },
+          "saturacao": {
+            "type": "string",
+            "example": "98%"
+          },
+          "temperatura": {
+            "type": "string",
+            "example": "36.5"
+          },
+          "glasgow": {
+            "type": "string",
+            "example": "15"
+          },
+          "triagem": {
+            "type": "string"
+          },
+          "medicamentos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Medicamento"
+            }
+          },
+          "observacoes": {
+            "type": "string"
+          }
+        }
+      },
+      "PayloadItem": {
+        "type": "object",
+        "properties": {
+          "pessoa": {
+            "$ref": "#/components/schemas/Pessoa"
+          },
+          "atendimento": {
+            "$ref": "#/components/schemas/Atendimento"
+          }
+        }
+      },
+      "Payload": {
+        "type": "object",
+        "properties": {
+          "pessoa": {
+            "$ref": "#/components/schemas/Pessoa"
+          },
+          "atendimento": {
+            "$ref": "#/components/schemas/Atendimento"
+          },
+          "profissional": {
+            "type": "string",
+            "example": "Profissional de demonstração"
+          },
+          "to": {
+            "type": "string",
+            "format": "email",
+            "example": "destinatario@exemplo.com"
+          },
+          "items": {
+            "type": "array",
+            "description": "Lista de prontuários para envio. Se vazia, utiliza pessoa e atendimento.",
+            "items": {
+              "$ref": "#/components/schemas/PayloadItem"
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Sistema"],
+        "summary": "Verificar disponibilidade da API",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Serviço disponível"
+          }
+        }
+      }
+    },
+    "/pdf": {
+      "post": {
+        "tags": ["Documentos"],
+        "summary": "Gerar ficha de atendimento em PDF",
+        "description": "Gera um arquivo PDF com os dados da pessoa, atendimento, medicamentos e profissional.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Payload"
+              },
+              "example": {
+                "pessoa": {
+                  "nome": "Paciente de demonstração",
+                  "documento": "00000000000"
+                },
+                "atendimento": {
+                  "data": "2026-11-18T10:00:00Z",
+                  "queixa": "Registro fictício para demonstração",
+                  "pressao": "120/80",
+                  "frequenciaCardiaca": "80 bpm",
+                  "frequenciaRespiratoria": "18",
+                  "saturacao": "98%",
+                  "temperatura": "36.5",
+                  "glasgow": "15",
+                  "triagem": "Amarelo",
+                  "medicamentos": [],
+                  "observacoes": "Dados fictícios"
+                },
+                "profissional": "Profissional de demonstração"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PDF gerado com sucesso",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido"
+          },
+          "401": {
+            "description": "Não autenticado ou token inválido"
+          },
+          "500": {
+            "description": "Falha na geração do PDF"
+          }
+        }
+      }
+    },
+    "/email": {
+      "post": {
+        "tags": ["E-mail"],
+        "summary": "Enviar prontuários em PDF por e-mail",
+        "description": "Gera PDFs dos prontuários informados e envia os arquivos anexados ao destinatário.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Payload"
+              },
+              "example": {
+                "to": "destinatario@exemplo.com",
+                "profissional": "Profissional de demonstração",
+                "items": [
+                  {
+                    "pessoa": {
+                      "nome": "Paciente de demonstração",
+                      "documento": "00000000000"
+                    },
+                    "atendimento": {
+                      "data": "2026-11-18T10:00:00Z",
+                      "queixa": "Registro fictício",
+                      "pressao": "120/80",
+                      "medicamentos": [],
+                      "observacoes": "Dados fictícios"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "E-mail enviado",
+            "content": {
+              "application/json": {
+                "example": {
+                  "sent": true,
+                  "count": 1,
+                  "to": "destinatario@exemplo.com"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Destinatário ou prontuário inválido"
+          },
+          "401": {
+            "description": "Não autenticado ou token inválido"
+          },
+          "502": {
+            "description": "Falha no envio SMTP"
+          },
+          "503": {
+            "description": "Configuração SMTP inválida ou ausente"
+          }
+        }
+      }
+    }
+  }
+}
+

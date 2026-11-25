@@ -1,0 +1,67 @@
+Comamands - 
+
+ssh univates@177.44.248.78
+
+cd /home/univates/medicalfield_luizg/MedicalField
+
+start:  ./start.sh
+
+http://177.44.248.78:8080/
+http://177.44.248.78:8080/mobile/
+
+stop:  ./stop.sh
+
+scp "C:\Users\Garske\VSC\MedicalField.zip" univates@177.44.248.78:/home/univates/medicalfield_luizg/
+
+http://177.44.248.78:8080/api/auth/docs
+http://177.44.248.78:8080/api/records/docs/
+http://177.44.248.78:8080/api/docs/docs/
+
+== TESTES ==
+
+1. Portal: Autenticar 
+2. Portal: Listar cadastros 
+3. Portal: Listar prontuários 
+4. Portal: Listar atendimentos 
+5. Cliente: Autenticar 
+6. Cliente: Sincronizar dados a partir do Portal (receber dados) 
+7. Cliente: Online - Registrar um atendimento 
+8. Portal: Listar atendimentos - visualizar atendimento registrado 
+9. Portal: Inserir novos medicamentos via Banco de Dados 
+10. Portal: Listar atendimentos 
+11. Cliente: Sincronizar dados a partir do Portal (receber dados) Tarefa final Prof. Fabrício 2026/B 
+12. Cliente: Offline - Registrar ocorrência de socorro: Criar pessoa, Criar prontuário, Registrar atendimento 
+13. Portal: Listar prontuários e atendimentos: cadastro novo não deve ser exibido 
+14. Cliente: Online - Sincronizar dados para o Portal 
+15. Portal: Listar prontuários e atendimentos: cadastro novo deve ser exibido 
+16. Demonstrar geração da Ficha de antedimento 
+17. Demonstrar e-mail enviado com Ficha de atendimento em anexo 
+
+Patterns do projeto:
+
+-Microservices Architecture
+-Factory Pattern
+-Singleton Pattern
+-Adapter Pattern
+-Observer Pattern
+-Outbox Pattern
+-Strategy Pattern
+
+
+Logs Auth
+
+sqlite3 services/auth/auth.db \
+"SELECT data_hora, ip, profissional, metodo,
+rota, status, tempo_ms
+FROM access_audit
+ORDER BY id DESC LIMIT 30;"
+
+Logs Records 
+
+sqlite3 services/records/records.db \
+"SELECT data_hora, ip, profissional, metodo,
+rota, status, tempo_ms
+FROM audit
+ORDER BY id DESC LIMIT 30;"
+
+http://177.44.248.78:8080/api/records/health
